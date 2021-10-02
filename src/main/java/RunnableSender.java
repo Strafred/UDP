@@ -1,24 +1,28 @@
+import java.lang.management.ManagementFactory;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 public class RunnableSender implements Runnable {
-    private static String processName;
-    private static String multicastIpAddress;
-    private static int multicastPort;
-    private static int threadSleepTime;
+    private final String processName = ManagementFactory.getRuntimeMXBean().getName();
+    private final String multicastIpAddress;
+    private final int multicastPort;
+    private final int threadSleepTime;
 
-    RunnableSender(String processName, String multicastIpAddress, int multicastPort, int threadSleepTime) {
-        RunnableSender.processName = processName;
-        RunnableSender.multicastIpAddress = multicastIpAddress;
-        RunnableSender.multicastPort = multicastPort;
-        RunnableSender.threadSleepTime = threadSleepTime;
+    public RunnableSender(String multicastIpAddress, int multicastPort, int threadSleepTime) {
+        this.multicastIpAddress = multicastIpAddress;
+        this.multicastPort = multicastPort;
+        this.threadSleepTime = threadSleepTime;
     }
 
     @Override
     public void run() {
         try {
             InetAddress group = InetAddress.getByName(multicastIpAddress);
+            if (!group.isMulticastAddress()) {
+                return;
+            }
+
             MulticastSocket socket = new MulticastSocket();
             DatagramPacket packet = new DatagramPacket(processName.getBytes(), processName.length(), group, multicastPort);
 
